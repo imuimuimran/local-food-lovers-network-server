@@ -42,7 +42,17 @@ async function run() {
       }
     });
 
-    
+    // To Get top 6 Rated Reviews
+    app.get("/featured-reviews", async (req, res) => {
+      try {
+        const cursor = foodsCollection.find().sort({ rating: -1 }).limit(6);
+        const featured = await cursor.toArray();
+        res.send(featured);
+      } catch (error) {
+        res.status(500).send({ message: "Error fetching featured reviews", error });
+      }
+    }); 
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -52,7 +62,7 @@ async function run() {
     // await client.close();
   }
 }
-run().catch(console.dir); 
+run().catch(console.dir);
 
 
 app.listen(port, () => {
