@@ -15,7 +15,6 @@ app.get('/', (req, res) => {
 
 const uri = process.env.MONGO_URI;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -26,9 +25,24 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+
+    const db = client.db("foodLoversDB");
+    const foodsCollection = db.collection("foods-info");
+
+    // To Get all Reviews
+    app.get("/reviews", async (req, res) => {
+      try {
+        const cursor = foodsCollection.find().sort({ date: -1 });
+        const reviews = await cursor.toArray();
+        res.send(reviews);
+      } catch (error) {
+        res.status(500).send({ message: "Error fetching reviews", error });
+      }
+    });
+
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -38,7 +52,7 @@ async function run() {
     // await client.close();
   }
 }
-run().catch(console.dir);
+run().catch(console.dir); 
 
 
 app.listen(port, () => {
