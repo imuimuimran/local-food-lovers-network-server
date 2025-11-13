@@ -1,4 +1,3 @@
-// import { ObjectId } from "mongodb";
 
 const express = require('express')
 const cors = require('cors')
@@ -25,6 +24,7 @@ const client = new MongoClient(uri, {
   }
 });
 
+
 async function run() {
   try {
     await client.connect();
@@ -34,7 +34,9 @@ async function run() {
     const foodsCollection = db.collection("foods-info");
 
 
-    const favoritesCollection = client.db("local-food-lovers-db").collection("favorite-foods-info");
+    const favoritesCollection = client.db("foodLoversDB").collection("favorite-foods-info");
+    // favoriteFoodsCollection = db.collection("favorite-foods-info");
+
 
 
     // To Get all Reviews
@@ -125,9 +127,6 @@ async function run() {
       }
     });
 
-
-
-
     // To Edit/Update a review
     app.patch("/reviews/:id", async (req, res) => {
       try {
@@ -140,6 +139,46 @@ async function run() {
         res.send(result);
       } catch (error) {
         res.status(500).send({ message: "Error updating review", error });
+      }
+    });
+
+
+
+
+
+    // Add a favorite
+    app.post("/favorites", async (req, res) => {
+      try {
+        const favorite = req.body;
+        const result = await favoritesCollection.insertOne(favorite);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Error adding favorite", error });
+      }
+    });
+
+    // Get all favorites for particular logged in user
+    app.get("/favorites", async (req, res) => {
+      try {
+        const email = req.query.email;
+        if (!email) return res.status(400).send({ message: "Email required" });
+
+        const cursor = favoritesCollection.find({ userEmail: email }).sort({ date: -1 });
+        const favorites = await cursor.toArray();
+        res.send(favorites);
+      } catch (error) {
+        res.status(500).send({ message: "Error fetching favorites", error });
+      }
+    });
+
+    // Delete a favorite for particular logged in user
+    app.delete("/favorites/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const result = await favoritesCollection.deleteOne({ _id: new ObjectId(id) });
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Error deleting favorite", error });
       }
     });
 
