@@ -98,6 +98,53 @@ async function run() {
 
 
 
+    // To Get all Reviews by user which Filter by email
+    app.get("/my-reviews", async (req, res) => {
+      try {
+        const email = req.query.email;
+        if (!email) {
+          return res.status(400).send({ message: "Email query parameter is required" });
+        }
+
+        const cursor = foodsCollection.find({ reviewerEmail: email }).sort({ date: -1 });
+        const reviews = await cursor.toArray();
+        res.send(reviews);
+      } catch (error) {
+        res.status(500).send({ message: "Error fetching user reviews", error });
+      }
+    });
+
+    // To Delete a review
+    app.delete("/reviews/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const result = await foodsCollection.deleteOne({ _id: new ObjectId(id) });
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Error deleting review", error });
+      }
+    });
+
+
+
+
+    // To Edit/Update a review
+    app.patch("/reviews/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const updatedData = req.body;
+        const result = await foodsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updatedData }
+        );
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Error updating review", error });
+      }
+    });
+
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
