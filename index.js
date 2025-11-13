@@ -1,3 +1,5 @@
+// import { ObjectId } from "mongodb";
+
 const express = require('express')
 const cors = require('cors')
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -31,7 +33,7 @@ async function run() {
     const db = client.db("foodLoversDB");
     const foodsCollection = db.collection("foods-info");
 
-    
+
     const favoritesCollection = client.db("local-food-lovers-db").collection("favorite-foods-info");
 
 
@@ -52,6 +54,7 @@ async function run() {
         const cursor = foodsCollection.find().sort({ rating: -1 }).limit(6);
         const featured = await cursor.toArray();
         res.send(featured);
+
       } catch (error) {
         res.status(500).send({ message: "Error fetching featured reviews", error });
       }
@@ -77,6 +80,20 @@ async function run() {
         res.status(500).send({ message: "Error fetching all reviews", error });
       }
     });
+
+
+
+    // To Post Add Review
+    app.post("/reviews", async (req, res) => {
+      try {
+        const review = req.body;
+        const result = await foodsCollection.insertOne(review);
+        res.status(201).send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Error adding review", error });
+      }
+    });
+
 
 
 
