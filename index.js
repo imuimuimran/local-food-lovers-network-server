@@ -31,6 +31,10 @@ async function run() {
     const db = client.db("foodLoversDB");
     const foodsCollection = db.collection("foods-info");
 
+    
+    const favoritesCollection = client.db("local-food-lovers-db").collection("favorite-foods-info");
+
+
     // To Get all Reviews
     app.get("/reviews", async (req, res) => {
       try {
@@ -51,7 +55,31 @@ async function run() {
       } catch (error) {
         res.status(500).send({ message: "Error fetching featured reviews", error });
       }
-    }); 
+    });
+
+
+
+
+    // To Get All Reviews with search option
+    app.get("/all-reviews", async (req, res) => {
+      try {
+        const search = req.query.search || "";
+
+        let query = {};
+        if (search) {
+          query = { foodName: { $regex: search, $options: "i" } };
+        }
+
+        const cursor = foodsCollection.find(query).sort({ date: -1 });
+        const reviews = await cursor.toArray();
+        res.send(reviews);
+      } catch (error) {
+        res.status(500).send({ message: "Error fetching all reviews", error });
+      }
+    });
+
+
+
 
 
     // Send a ping to confirm a successful connection
